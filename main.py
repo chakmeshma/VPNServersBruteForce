@@ -16,13 +16,14 @@ def check_port(host_address: str, host_port: int, opens_obj: set):
         pass
 
 
-def fetch_them(min_num=0, max_num=102, min_port=0, max_port=1024):
+def fetch_them(min_num=0, max_num=102, min_port=555, max_port=555):
     opens = set()
     threads = []
 
     for num in range(min_num, max_num + 1):
         for port_num in range(min_port, max_port + 1):
             address = "s{}.serspeed.info".format(num)
+            address = '82.115.17.99'
             thread = threading.Thread(target=check_port, args=(address, port_num, opens))
             threads.append(thread)
             thread.start()
@@ -33,9 +34,16 @@ def fetch_them(min_num=0, max_num=102, min_port=0, max_port=1024):
     return opens
 
 
-a = fetch_them(0, 1000, 1, 3333)
+a = fetch_them(1, 1, 1, 3333)
 
-current_date_and_time_str = datetime.now().strftime('%Y.%m.%d %H.%M.%S.%f')
+# current_date_and_time_str = datetime.now().strftime('%Y.%m.%d %H.%M.%S.%f')
 
-with open(f"opens {current_date_and_time_str}.pickle", "wb") as outfile:
-    pickle.dump(a, outfile)
+# with open(f"opens {current_date_and_time_str}.pickle", "wb") as outfile:
+#     pickle.dump(a, outfile)
+
+
+# with open('opens 2022.12.28 08.02.00.581927.pickle', 'rb') as inputfile:
+#     a = pickle.load(inputfile)
+
+for i in a:
+    print(i)
