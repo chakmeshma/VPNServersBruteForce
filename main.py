@@ -32,6 +32,7 @@ def fetch_them(min_num=0, max_num=102, min_port=0, max_port=1024):
     return opens
 
 
-a = fetch_them()
+a = fetch_them(0, 102, 555, 555)
 
-print(a)
+with open("test.pickle", "wb") as outfile:
+    pickle.dump(a, outfile)
