@@ -1,6 +1,7 @@
 import socket
 import threading
 import pickle
+from datetime import datetime
 
 
 def check_port(host_address: str, host_port: int, opens_obj: set):
@@ -32,7 +33,9 @@ def fetch_them(min_num=0, max_num=102, min_port=0, max_port=1024):
     return opens
 
 
-a = fetch_them(0, 102, 555, 555)
+a = fetch_them(0, 1000, 1, 3333)
 
-with open("test.pickle", "wb") as outfile:
+current_date_and_time_str = datetime.now().strftime('%Y.%m.%d %H.%M.%S.%f')
+
+with open(f"opens {current_date_and_time_str}.pickle", "wb") as outfile:
     pickle.dump(a, outfile)
