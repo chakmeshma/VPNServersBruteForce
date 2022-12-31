@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 
 def check_port(host_address: str, host_port: int, opens: set):
@@ -9,10 +10,14 @@ def check_port(host_address: str, host_port: int, opens: set):
 
         host, host_port = s.getpeername()
 
-        s.shutdown()
+        s.shutdown(socket.SHUT_RDWR)
         s.close()
 
-        opens.add("{}:{}".format(host, host_port))
+        open_str = "{}:{}".format(host, host_port)
+
+        opens.add(open_str)
+
+        print(open_str)
     except:
         pass
 
@@ -32,7 +37,11 @@ def fetch_them(address_name: str, min_port=0, max_port=65535):
     return opens
 
 
-opens = fetch_them('www.leader.ir', 443, 443)
+start_timestamp = time.time()
+opens = fetch_them('www.leader.ir')
+finish_timestamp = time.time()
 
-for the_open in opens:
-    print(the_open)
+print("Took {} seconds".format(finish_timestamp - start_timestamp))
+
+# for the_open in opens:
+#     print(the_open)
