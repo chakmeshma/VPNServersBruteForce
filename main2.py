@@ -21,4 +21,4 @@ target_port = int(sys.argv[2])
 while not check_port(target_name, target_port):
     time.sleep(4)
 
-winsound.Beep(1666, 6666)
+winsound.Beep(2500, 3600 * 1000)
