@@ -38,7 +38,7 @@ def fetch_them(address_name: str, min_port=0, max_port=65535):
 
 
 start_timestamp = time.time()
-opens = fetch_them('www.leader.ir')
+opens = fetch_them('82.115.17.99')
 finish_timestamp = time.time()
 
 print("Took {} seconds".format(finish_timestamp - start_timestamp))
