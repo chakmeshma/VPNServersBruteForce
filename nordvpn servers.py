@@ -1,5 +1,10 @@
 import socket
+import time
 from concurrent.futures import ThreadPoolExecutor, wait
+import pickle
+from datetime import datetime
+
+total_targets = 0
 
 
 def check_port(host_address: str, host_port: int, opens: set):
@@ -13,15 +18,21 @@ def check_port(host_address: str, host_port: int, opens: set):
         pass
 
 
-def fetch_them(domain_name_part_vars: set, ports: set, thread_pool_size: int = 30):
+def fetch_them(domain_name_part_country_prefix: set, domain_name_part_number: set, ports: set,
+               thread_pool_size: int = 100):
+    global total_targets
+
     targets = set()
     futures = list()
     opens = set()
 
-    for name_part_var in domain_name_part_vars:
-        for port_num in ports:
-            address = "de{}.nordvpn.com".format(name_part_var)
-            targets.add((address, port_num))
+    for name_prefix in domain_name_part_country_prefix:
+        for name_num in domain_name_part_number:
+            for port_num in ports:
+                address = "{}{}.nordvpn.com".format(name_prefix, name_num)
+                targets.add((address, port_num))
+
+    total_targets = len(targets)
 
     executor = ThreadPoolExecutor(thread_pool_size)
 
@@ -33,6 +44,15 @@ def fetch_them(domain_name_part_vars: set, ports: set, thread_pool_size: int = 3
     return opens
 
 
-fetch_them(range(1, 3000), {443}, 50)
+country_prefix = 'us'
 
-# print(opens)
+start_timestamp = time.time()
+opens = fetch_them({country_prefix}, range(2000, 2002 + 1), {443}, 300)
+finish_timestamp = time.time()
+
+print("Took {} seconds to check {} targets".format(finish_timestamp - start_timestamp, total_targets))
+
+current_date_and_time_str = datetime.now().strftime('%Y.%m.%d %H.%M.%S.%f')
+
+with open(f"nordvpn opens {country_prefix} {current_date_and_time_str}.pickle", "wb") as outfile:
+    pickle.dump(opens, outfile)
