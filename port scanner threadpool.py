@@ -5,11 +5,13 @@ from concurrent.futures import ThreadPoolExecutor, wait
 def check_port(host_address: str, host_port: int, opens: set):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
+        # s.settimeout(1.)
         s.connect((host_address, host_port))
 
         opens.add("{}:{}".format(host_address, host_port))
         print("{}:{}".format(host_address, host_port))
     except:
+        s.close()
         pass
 
 
@@ -31,4 +33,4 @@ def fetch_them(target_name: str, ports: set, thread_pool_size: int = 100):
     return opens
 
 
-opens = fetch_them('192.168.1.100', range(0, 65536), 200)
+opens = fetch_them('92.255.139.206', range(0, 65536), 200)
