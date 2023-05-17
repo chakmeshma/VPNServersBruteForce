@@ -5,6 +5,7 @@ import graceful_close
 
 response_start_timeout = 10
 connect_timeout = 10
+target_address = 'www.leader.ir:443'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
@@ -90,6 +91,8 @@ feedfile.close()
 requestbinfile = open('requestpdu2.bin', 'rb')
 requestbin = requestbinfile.read()
 requestbinfile.close()
+
+requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 
 # last_accerrlst_size = -1
 # accumulated_errors_set = dict()
