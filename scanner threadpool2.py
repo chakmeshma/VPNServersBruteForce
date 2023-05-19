@@ -1,19 +1,20 @@
 import socket
 from concurrent.futures import ThreadPoolExecutor, wait
 from timeit import default_timer as timer
+import urllib3
 import graceful_close
 
-response_start_timeout = 10
+response_timeout = 10
 connect_timeout = 10
-target_address = 'www.leader.ir:443'
+
+
+# target_address = '45.35.50.219:55330'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
     global requestbin
-    global response_start_timeout
+    global response_timeout
     global connect_timeout
-    # global accumulated_errors_set
-    # global last_accerrlst_size
 
     s = None
 
@@ -33,19 +34,19 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
         response_start_timestamp = timer()
 
         while True:
-            if (timer() - response_start_timestamp) > response_start_timeout:
+            elapsed_time = timer() - response_start_timestamp
+            if elapsed_time > response_timeout:
                 raise TimeoutError()
 
             try:
                 acc_inbound_response += s.recv(32)
                 acc_inbound_response_str = acc_inbound_response.decode('ascii')
 
-                if len(acc_inbound_response_str) >= 12 and acc_inbound_response_str[9:10] != '2':
-                    raise TimeoutError()
-
-                if acc_inbound_response_str.find('HTTP/1.1 2') == 0 or acc_inbound_response_str.find(
-                        'HTTP/1.0 2') == 0:
-                    break
+                if len(acc_inbound_response_str) >= 12:
+                    if acc_inbound_response_str[9:10] == '2':
+                        break
+                    else:
+                        raise TimeoutError()
 
             except socket.error as e:
                 if e.errno != socket.EWOULDBLOCK and e.errno != socket.EAGAIN:
@@ -60,19 +61,9 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
             graceful_close.graceful_socket_close(s)
 
 
-def fetch_them(feed: str, thread_pool_size: int):
-    targets = set()
+def fetch_them(targets: set, thread_pool_size: int):
     futures = list()
     opens = set()
-
-    feed_list = feed.split('\n')
-
-    for tt in feed_list:
-        tsp = tt.split(':')
-        tname = tsp[0]
-        tport = int(tsp[1])
-        # tport = 1666
-        targets.add((tname, tport))
 
     executor = ThreadPoolExecutor(thread_pool_size)
 
@@ -84,17 +75,37 @@ def fetch_them(feed: str, thread_pool_size: int):
     return opens
 
 
-feedfile = open('proxy-list-raw.txt', 'r')
-feed_str = feedfile.read()
-feedfile.close()
+def get_targets():
+    # with open('proxy-list-raw.txt', 'r') as feedfile:
+    #     feed_str = feedfile.read()
 
-requestbinfile = open('requestpdu2.bin', 'rb')
-requestbin = requestbinfile.read()
-requestbinfile.close()
+    # with open('feed.txt', 'r') as feedfile:
+    #     feed_str2 = feedfile.read()
 
-requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
+    feed_resp = urllib3.request('GET',
+                                'https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt')
+    feed_str = feed_resp.data.decode('utf-8')
+    feed_list = feed_str.split('\n')
 
-# last_accerrlst_size = -1
-# accumulated_errors_set = dict()
+    targets = set()
 
-opens = fetch_them(feed_str, 50)
+    for tt in feed_list:
+        if tt.find(':') != -1:
+            tsp = tt.split(':')
+            tname = tsp[0]
+            tport = int(tsp[1])
+            targets.add((tname, tport))
+
+    return targets
+
+
+with open('requestpduopenconnect.bin', 'rb') as requestbinfile:
+    requestbin = requestbinfile.read()
+
+# requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
+
+targets = get_targets()
+
+opens = fetch_them(targets, 100)
+
+print("Found {}".format(len(opens)))
