@@ -4,8 +4,8 @@ from timeit import default_timer as timer
 import urllib3
 import graceful_close
 
-response_timeout = 10
-connect_timeout = 10
+response_timeout = 20
+connect_timeout = 20
 
 target_address = 'www.facebook.com:443'
 
@@ -127,6 +127,6 @@ requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 targets = get_targets()
 targets.update(get_targets2())
 
-opens = fetch_them(targets, 100)
+opens = fetch_them(targets, 70)
 
 print("Found {}".format(len(opens)))
