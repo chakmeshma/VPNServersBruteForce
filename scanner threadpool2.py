@@ -7,8 +7,7 @@ import graceful_close
 response_timeout = 10
 connect_timeout = 10
 
-
-# target_address = '45.35.50.219:55330'
+target_address = 'www.facebook.com:443'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
@@ -75,28 +74,28 @@ def fetch_them(targets: set, thread_pool_size: int):
     return opens
 
 
-# def get_targets():
-#     # with open('proxy-list-raw.txt', 'r') as feedfile:
-#     #     feed_str = feedfile.read()
-#
-#     # with open('feed.txt', 'r') as feedfile:
-#     #     feed_str2 = feedfile.read()
-#
-#     feed_resp = urllib3.request('GET',
-#                                 'https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt')
-#     feed_str = feed_resp.data.decode('utf-8')
-#     feed_list = feed_str.split('\n')
-#
-#     targets = set()
-#
-#     for tt in feed_list:
-#         if tt.find(':') != -1:
-#             tsp = tt.split(':')
-#             tname = tsp[0]
-#             tport = int(tsp[1])
-#             targets.add((tname, tport))
-#
-#     return targets
+def get_targets2():
+    # with open('proxy-list-raw.txt', 'r') as feedfile:
+    #     feed_str = feedfile.read()
+
+    # with open('feed.txt', 'r') as feedfile:
+    #     feed_str2 = feedfile.read()
+
+    feed_resp = urllib3.request('GET',
+                                'https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt')
+    feed_str = feed_resp.data.decode('utf-8')
+    feed_list = feed_str.split('\n')
+
+    targets = set()
+
+    for tt in feed_list:
+        if tt.find(':') != -1:
+            tsp = tt.split(':')
+            tname = tsp[0]
+            tport = int(tsp[1])
+            targets.add((tname, tport))
+
+    return targets
 
 
 def get_targets():
@@ -120,12 +119,13 @@ def get_targets():
     return targets
 
 
-with open('requestpduopenconnect.bin', 'rb') as requestbinfile:
+with open('requestpdu_sexhost.bin', 'rb') as requestbinfile:
     requestbin = requestbinfile.read()
 
-# requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
+requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 
 targets = get_targets()
+targets.update(get_targets2())
 
 opens = fetch_them(targets, 100)
 
