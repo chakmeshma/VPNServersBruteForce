@@ -4,10 +4,10 @@ from timeit import default_timer as timer
 import urllib3
 import graceful_close
 
-response_timeout = 20
-connect_timeout = 20
+response_timeout = 10
+connect_timeout = 10
 
-target_address = 'www.facebook.com:443'
+target_address = 'www.pornhub.com:443'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
@@ -127,6 +127,6 @@ requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 targets = get_targets()
 targets.update(get_targets2())
 
-opens = fetch_them(targets, 70)
+opens = fetch_them(targets, 300)
 
 print("Found {}".format(len(opens)))
