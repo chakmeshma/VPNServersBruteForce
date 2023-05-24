@@ -1,3 +1,4 @@
+import json
 import socket
 from concurrent.futures import ThreadPoolExecutor, wait
 from timeit import default_timer as timer
@@ -103,15 +104,32 @@ def get_targets_file(file_name: str):
     return parse_feed(feed_str)
 
 
+def get_targets_file_json(file_name: str):
+    with open(file_name, 'rb') as feedfile:
+        feed_bin = feedfile.read()
+
+    feed_str = feed_bin.decode('utf-8')
+
+    zzz = json.loads(feed_str)['data']
+
+    targets = set()
+
+    for i in zzz:
+        targets.add((i['ip'], int(i['port'])))
+
+    return targets
+
+
 with open('requestpdu_sexhost.bin', 'rb') as requestbinfile:
     requestbin = requestbinfile.read()
 requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 
 targets = set()
+targets.update(get_targets_file_json('sex.json'))
 targets.update(get_targets_file('feed.txt'))
 targets.update(
     get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
 
-opens = fetch_them(targets, 100)
+opens = fetch_them(targets, 200)
 
 print("Found {}".format(len(opens)))
