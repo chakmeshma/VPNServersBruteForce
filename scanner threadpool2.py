@@ -4,10 +4,10 @@ from timeit import default_timer as timer
 import urllib3
 import graceful_close
 
-response_timeout = 10
-connect_timeout = 10
+response_timeout = 100
+connect_timeout = 100
 
-target_address = 'www.pornhub.com:443'
+target_address = 'www.facebook.com:443'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
@@ -74,22 +74,13 @@ def fetch_them(targets: set, thread_pool_size: int):
     return opens
 
 
-def get_targets2():
-    # with open('proxy-list-raw.txt', 'r') as feedfile:
-    #     feed_str = feedfile.read()
-
-    # with open('feed.txt', 'r') as feedfile:
-    #     feed_str2 = feedfile.read()
-
-    feed_resp = urllib3.request('GET',
-                                'https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt')
-    feed_str = feed_resp.data.decode('utf-8')
+def parse_feed(feed_str: str):
     feed_list = feed_str.split('\n')
 
     targets = set()
 
     for tt in feed_list:
-        if tt.find(':') != -1:
+        if 0 < tt.find(':') < len(tt) - 1:
             tsp = tt.split(':')
             tname = tsp[0]
             tport = int(tsp[1])
@@ -98,35 +89,29 @@ def get_targets2():
     return targets
 
 
-def get_targets():
-    # with open('proxy-list-raw.txt', 'r') as feedfile:
-    #     feed_str = feedfile.read()
+def get_targets_url(url: str):
+    feed_resp = urllib3.request('GET', url)
+    feed_str = feed_resp.data.decode('utf-8')
 
-    with open('feed.txt', 'r') as feedfile:
+    return parse_feed(feed_str)
+
+
+def get_targets_file(file_name: str):
+    with open(file_name, 'r') as feedfile:
         feed_str = feedfile.read()
 
-    feed_list = feed_str.split('\n')
-
-    targets = set()
-
-    for tt in feed_list:
-        if tt.find(':') != -1:
-            tsp = tt.split(':')
-            tname = tsp[0]
-            tport = int(tsp[1])
-            targets.add((tname, tport))
-
-    return targets
+    return parse_feed(feed_str)
 
 
 with open('requestpdu_sexhost.bin', 'rb') as requestbinfile:
     requestbin = requestbinfile.read()
-
 requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 
-targets = get_targets()
-targets.update(get_targets2())
+targets = set()
+targets.update(get_targets_file('feed.txt'))
+targets.update(
+    get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
 
-opens = fetch_them(targets, 300)
+opens = fetch_them(targets, 100)
 
 print("Found {}".format(len(opens)))
