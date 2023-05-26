@@ -8,7 +8,7 @@ import graceful_close
 response_timeout = 30
 connect_timeout = 30
 
-target_address = 'www.google.com:443'
+target_address = 'www.facebook.com:443'
 
 
 def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
@@ -44,6 +44,7 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
 
                 if len(acc_inbound_response_str) >= 12:
                     if acc_inbound_response_str[9:10] == '2':
+                        # print(acc_inbound_response_str)
                         break
                     else:
                         raise TimeoutError()
@@ -112,20 +113,20 @@ def get_targets_file(file_name: str):
     return parse_feed(feed_str)
 
 
-# def get_targets_file_json(file_name: str):
-#     with open(file_name, 'rb') as feedfile:
-#         feed_bin = feedfile.read()
-#
-#     feed_str = feed_bin.decode('utf-8')
-#
-#     zzz = json.loads(feed_str)['data']
-#
-#     targets = set()
-#
-#     for i in zzz:
-#         targets.add((i['ip'], int(i['port'])))
-#
-#     return targets
+def get_targets_file_json(file_name: str):
+    with open(file_name, 'rb') as feedfile:
+        feed_bin = feedfile.read()
+
+    feed_str = feed_bin.decode('utf-8')
+
+    zzz = json.loads(feed_str)['data']
+
+    targets = set()
+
+    for i in zzz:
+        targets.add((i['ip'], int(i['port'])))
+
+    return targets
 
 
 with open('requestpdu_sexhost.bin', 'rb') as requestbinfile:
@@ -134,15 +135,19 @@ requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 # requeststr = requestbin.decode('ascii')
 
 targets = set()
-# targets.update(get_targets_file_json('sex.json'))
-# targets.update(get_targets_file('feed3.txt'))
-# targets.update(get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
+targets.update(get_targets_file_json('feed.json'))
+targets.update(get_targets_file_json('feed2.json'))
+targets.update(get_targets_file('feed.txt'))
+targets.update(get_targets_file('feed2.txt'))
+targets.update(get_targets_file('feed3.txt'))
+targets.update(get_targets_file('feed4.txt'))
+targets.update(get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt'))
 
-opens = fetch_them(targets, 100)
+opens = fetch_them(targets, 150)
 
 print("Found {}".format(len(opens)))
