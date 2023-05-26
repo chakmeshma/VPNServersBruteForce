@@ -1,17 +1,38 @@
 import json
+import os.path
+import pickle
 import socket
+import threading
 from concurrent.futures import ThreadPoolExecutor, wait
 from timeit import default_timer as timer
 import urllib3
 import graceful_close
 
-response_timeout = 30
-connect_timeout = 30
-
 target_address = 'www.facebook.com:443'
+response_timeout = 10
+connect_timeout = 10
+thread_pool_size = 200
+results_file_name = 'results'
 
 
-def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
+def append_opens_result_file(target: tuple, file_lock):
+    global results_file_name
+
+    with file_lock:
+        if not os.path.isfile(results_file_name) or os.path.getsize(results_file_name) == 0:
+            with open(results_file_name, 'wb') as file_obj:
+                pickle.dump(set(), file_obj)
+
+        with open(results_file_name, 'rb') as file_obj:
+            current_opens = pickle.load(file_obj)
+
+        current_opens.add(target)
+
+        with open(results_file_name, 'wb') as file_obj:
+            pickle.dump(current_opens, file_obj)
+
+
+def check_connect_and_connetverb(host_address: str, host_port: int, opens: set, file_lock):
     global requestbin
     global response_timeout
     global connect_timeout
@@ -55,6 +76,7 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set):
 
         opens.add("{}:{}".format(host_address, host_port))
         # if host_port == 443:
+        append_opens_result_file((host_address, host_port), file_lock)
         print("{} {}".format(host_address, host_port))
     except TimeoutError as e:
         pass
@@ -69,39 +91,43 @@ def fetch_them(targets: set, thread_pool_size: int):
 
     executor = ThreadPoolExecutor(thread_pool_size)
 
+    file_lock = threading.Lock()
+
     for target in targets:
-        futures.append(executor.submit(check_connect_and_connetverb, target[0], target[1], opens))
+        futures.append(executor.submit(check_connect_and_connetverb, target[0], target[1], opens, file_lock))
 
     wait(futures)
 
     return opens
 
 
-def parse_feed(feed_str: str):
-    if feed_str.find('\n\a') != -1:
-        feed_delimieter = '\n\a'
-    elif feed_str.find('\n') != -1:
-        feed_delimieter = '\n'
-    else:
-        raise Exception()
-
-    feed_list = feed_str.split(feed_delimieter)
+def parse_feed(feed_str: str):  # feed has to be at least two lines (at least one newline present in file)
+    feed_list = feed_str.splitlines()
 
     targets = set()
 
-    for tt in feed_list:
-        if 0 < tt.find(':') < len(tt) - 1:
-            tsp = tt.split(':')
-            tname = tsp[0]
-            tport = int(tsp[1])
-            targets.add((tname, tport))
+    for feed_item in feed_list:
+        if 0 < feed_item.find(':') < len(feed_item) - 1:
+            feed_item_splitted = feed_item.split(':')
+            address = feed_item_splitted[0]
+            port = int(feed_item_splitted[1])
+            targets.add((address, port))
 
     return targets
 
 
 def get_targets_url(url: str):
     feed_resp = urllib3.request('GET', url)
-    feed_str = feed_resp.data.decode('utf-8')
+
+    is_utf8 = True
+
+    try:
+        content_type = feed_resp.headers.get('Content-Type')
+        content_type.lower().index('utf-8')
+    except Exception as e:
+        is_utf8 = False
+
+    feed_str = feed_resp.data.decode('utf-8' if is_utf8 else 'ascii')
 
     return parse_feed(feed_str)
 
@@ -119,12 +145,12 @@ def get_targets_file_json(file_name: str):
 
     feed_str = feed_bin.decode('utf-8')
 
-    zzz = json.loads(feed_str)['data']
+    json_file_data = json.loads(feed_str)['data']
 
     targets = set()
 
-    for i in zzz:
-        targets.add((i['ip'], int(i['port'])))
+    for json_file_data_item in json_file_data:
+        targets.add((json_file_data_item['ip'], int(json_file_data_item['port'])))
 
     return targets
 
@@ -148,6 +174,8 @@ targets.update(get_targets_url('https://raw.githubusercontent.com/mmpx12/proxy-l
 targets.update(get_targets_url('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt'))
 targets.update(get_targets_url('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt'))
 
-opens = fetch_them(targets, 150)
+print("{} targets compiled".format(len(targets)))
+
+opens = fetch_them(targets, thread_pool_size)
 
 print("Found {}".format(len(opens)))
