@@ -9,8 +9,8 @@ import urllib3
 import graceful_close
 
 target_address = 'www.facebook.com:443'
-response_timeout = 10
-connect_timeout = 10
+response_timeout = 20
+connect_timeout = 20
 thread_pool_size = 200
 results_file_name = 'results'
 
@@ -161,18 +161,19 @@ requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
 # requeststr = requestbin.decode('ascii')
 
 targets = set()
-targets.update(get_targets_file_json('feed.json'))
-targets.update(get_targets_file_json('feed2.json'))
-targets.update(get_targets_file('feed.txt'))
-targets.update(get_targets_file('feed2.txt'))
-targets.update(get_targets_file('feed3.txt'))
-targets.update(get_targets_file('feed4.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt'))
-targets.update(get_targets_url('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt'))
+targets.update(get_targets_file('C:\\Users\\Chakmeshma\\Downloads\\http_proxies (4).txt'))
+# targets.update(get_targets_file_json('feed.json'))
+# targets.update(get_targets_file_json('feed2.json'))
+# targets.update(get_targets_file('feed.txt'))
+# targets.update(get_targets_file('feed2.txt'))
+# targets.update(get_targets_file('feed3.txt'))
+# targets.update(get_targets_file('feed4.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt'))
+# targets.update(get_targets_url('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt'))
 
 print("{} targets compiled".format(len(targets)))
 
