@@ -8,29 +8,25 @@ def check_port(host_address: str, host_port: int, opens: set):
         # s.settimeout(1.)
         s.connect((host_address, host_port))
 
-        opens.add("{}:{}".format(host_address, host_port))
-        print("{}:{}".format(host_address, host_port))
-    except:
+        opens.add(f"{host_address}:{host_port}")
+        print(f"{host_address}:{host_port}")
+    except Exception:
         s.close()
-        pass
 
 
 def fetch_them(target_name: str, ports: set, thread_pool_size: int = 100):
-    targets = set()
-    futures = list()
     opens = set()
 
-    for port_num in ports:
-        targets.add((target_name, port_num))
-
+    targets = {(target_name, port_num) for port_num in ports}
     executor = ThreadPoolExecutor(thread_pool_size)
 
-    for target in targets:
-        futures.append(executor.submit(check_port, target[0], target[1], opens))
-
+    futures = [
+        executor.submit(check_port, target[0], target[1], opens)
+        for target in targets
+    ]
     wait(futures)
 
     return opens
 
 
-opens = fetch_them('92.255.139.206', range(0, 65536), 200)
+opens = fetch_them('92.255.139.206', range(65536), 200)

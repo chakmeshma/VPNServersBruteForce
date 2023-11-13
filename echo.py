@@ -11,7 +11,7 @@ def echo_process():
 
     try:
         s.bind((HOST, PORT))
-    except:
+    except Exception:
         sys.exit()
 
     print('Socket bind complete')
@@ -24,18 +24,18 @@ def echo_process():
     while 1:
         # wait to accept a connection - blocking call
         conn, addr = s.accept()
-        print('Connected with ' + addr[0] + ':' + str(addr[1]))
+        print(f'Connected with {addr[0]}:{str(addr[1])}')
 
         while True:
             data = conn.recv(1024)
-            reply = 'OK...' + data.decode()
+            reply = f'OK...{data.decode()}'
             if not data:
                 break
             conn.sendall(reply.encode())
 
 
-while (True):
+while True:
     try:
         echo_process()
-    except:
+    except Exception:
         pass

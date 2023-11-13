@@ -71,13 +71,13 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set, 
                         raise TimeoutError()
 
             except socket.error as e:
-                if e.errno != socket.EWOULDBLOCK and e.errno != socket.EAGAIN:
-                    raise TimeoutError()
+                if e.errno not in [socket.EWOULDBLOCK, socket.EAGAIN]:
+                    raise TimeoutError() from e
 
-        opens.add("{}:{}".format(host_address, host_port))
+        opens.add(f"{host_address}:{host_port}")
         # if host_port == 443:
         append_opens_result_file((host_address, host_port), file_lock)
-        print("{} {}".format(host_address, host_port))
+        print(f"{host_address} {host_port}")
     except TimeoutError as e:
         pass
     finally:
@@ -86,16 +86,22 @@ def check_connect_and_connetverb(host_address: str, host_port: int, opens: set, 
 
 
 def fetch_them(targets: set, thread_pool_size: int):
-    futures = list()
     opens = set()
 
     executor = ThreadPoolExecutor(thread_pool_size)
 
     file_lock = threading.Lock()
 
-    for target in targets:
-        futures.append(executor.submit(check_connect_and_connetverb, target[0], target[1], opens, file_lock))
-
+    futures = [
+        executor.submit(
+            check_connect_and_connetverb,
+            target[0],
+            target[1],
+            opens,
+            file_lock,
+        )
+        for target in targets
+    ]
     wait(futures)
 
     return opens
@@ -147,14 +153,10 @@ def get_targets_file_json(file_name: str):
 
     json_file_data = json.loads(feed_str)['data']
 
-    targets = set()
-
-    for json_file_data_item in json_file_data:
-        targets.add((json_file_data_item['ip'], int(json_file_data_item['port'])))
-
-    return targets
-
-
+    return {
+        (json_file_data_item['ip'], int(json_file_data_item['port']))
+        for json_file_data_item in json_file_data
+    }
 with open('requestpdu_sexhost.bin', 'rb') as requestbinfile:
     requestbin = requestbinfile.read()
 requestbin = requestbin.replace(b'sexhost', target_address.encode('ascii'))
@@ -175,8 +177,8 @@ targets.update(get_targets_file('C:\\Users\\Chakmeshma\\Downloads\\http_proxies 
 # targets.update(get_targets_url('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt'))
 # targets.update(get_targets_url('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt'))
 
-print("{} targets compiled".format(len(targets)))
+print(f"{len(targets)} targets compiled")
 
 opens = fetch_them(targets, thread_pool_size)
 
-print("Found {}".format(len(opens)))
+print(f"Found {len(opens)}")

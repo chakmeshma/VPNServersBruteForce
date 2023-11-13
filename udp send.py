@@ -14,7 +14,7 @@ UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 address = ('45.35.13.55', 1666)
 
-while(True):
+while True:
     UDPServerSocket.sendto(bytesToSend, address)
     time.sleep(0.3)
 
@@ -26,15 +26,15 @@ print("UDP server up and listening")
 
 # Listen for incoming datagrams
 
-while (True):
+while True:
     bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
 
     message = bytesAddressPair[0]
 
     address = bytesAddressPair[1]
 
-    clientMsg = "Message from Client:{}".format(message)
-    clientIP = "Client IP Address:{}".format(address)
+    clientMsg = f"Message from Client:{message}"
+    clientIP = f"Client IP Address:{address}"
 
     print(clientMsg)
     print(clientIP)
