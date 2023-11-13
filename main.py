@@ -11,7 +11,7 @@ def check_port(host_address: str, host_port: int, opens_obj: set):
 
         host, host_port = s.getpeername()
 
-        opens_obj.add("{}:{}".format(host, host_port))
+        opens_obj.add(f"{host}:{host_port}")
     except:
         pass
 
@@ -22,7 +22,7 @@ def fetch_them(min_num=0, max_num=102, min_port=555, max_port=555):
 
     for num in range(min_num, max_num + 1):
         for port_num in range(min_port, max_port + 1):
-            address = "s{}.serspeed.info".format(num)
+            address = f"s{num}.serspeed.info"
             address = '82.115.17.99'
             thread = threading.Thread(target=check_port, args=(address, port_num, opens))
             threads.append(thread)

@@ -1,3 +1,4 @@
+import contextlib
 import socket
 import threading
 import time
@@ -5,7 +6,7 @@ import time
 
 def check_port(host_address: str, host_port: int, opens: set):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
+    with contextlib.suppress(Exception):
         s.connect((host_address, host_port))
 
         host, host_port = s.getpeername()
@@ -13,13 +14,11 @@ def check_port(host_address: str, host_port: int, opens: set):
         s.shutdown(socket.SHUT_RDWR)
         s.close()
 
-        open_str = "{}:{}".format(host, host_port)
+        open_str = f"{host}:{host_port}"
 
         opens.add(open_str)
 
         print(open_str)
-    except:
-        pass
 
 
 def fetch_them(address_name: str, min_port=0, max_port=65535):
@@ -41,7 +40,7 @@ start_timestamp = time.time()
 opens = fetch_them('82.115.17.99')
 finish_timestamp = time.time()
 
-print("Took {} seconds".format(finish_timestamp - start_timestamp))
+print(f"Took {finish_timestamp - start_timestamp} seconds")
 
 # for the_open in opens:
 #     print(the_open)

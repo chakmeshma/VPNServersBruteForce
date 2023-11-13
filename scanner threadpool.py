@@ -29,8 +29,8 @@ def check_port(host_address: str, host_port: int, opens: set):
 
         ccc = response_header_str.index('2')
 
-        opens.add("{}:{}".format(host_address, host_port))
-        print("{}:{}".format(host_address, host_port))
+        opens.add(f"{host_address}:{host_port}")
+        print(f"{host_address}:{host_port}")
     except Exception as e:
         accumulated_errors_set[e.args] = e
 
@@ -44,7 +44,6 @@ def check_port(host_address: str, host_port: int, opens: set):
 
 def fetch_them(feed: str, thread_pool_size: int = 300):
     targets = set()
-    futures = list()
     opens = set()
 
     feed_list = feed.split('\n')
@@ -58,23 +57,20 @@ def fetch_them(feed: str, thread_pool_size: int = 300):
 
     executor = ThreadPoolExecutor(thread_pool_size)
 
-    for target in targets:
-        futures.append(executor.submit(check_port, target[0], target[1], opens))
-
+    futures = [
+        executor.submit(check_port, target[0], target[1], opens)
+        for target in targets
+    ]
     wait(futures)
 
     return opens
 
 
-feedfile = open('feed.txt', 'r')
-feed_str = feedfile.read()
-feedfile.close()
-
-requestbinfile = open('requestpdu.bin', 'rb')
-requestbin = requestbinfile.read()
-requestbinfile.close()
-
+with open('feed.txt', 'r') as feedfile:
+    feed_str = feedfile.read()
+with open('requestpdu.bin', 'rb') as requestbinfile:
+    requestbin = requestbinfile.read()
 last_accerrlst_size = -1
-accumulated_errors_set = dict()
+accumulated_errors_set = {}
 
 opens = fetch_them(feed_str)

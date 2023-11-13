@@ -11,7 +11,7 @@ def check_port(host_address: str, host_port: int):
         s.connect((host_address, host_port))
 
         return True
-    except:
+    except Exception:
         return False
 
 
